@@ -1,1 +1,13 @@
+targets:
+  ubuntu-14.04:
+    dependencies:
+      - imagemagick
+  ubuntu-12.04:
+    dependencies:
+      - imagemagick
+  debian-7:
+    dependencies:
+      - imagemagick
 before_precompile: ./packaging/debian/setup.sh
+after:
+  - rm lib/tasks/pkgr.rake

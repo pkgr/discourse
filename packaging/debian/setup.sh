@@ -15,3 +15,6 @@ EOF
 
 sudo service postgresql start
 sudo service redis-server start
+
+# overwrite assets:precompile task
+mv packaging/pkgr.rake lib/tasks/
