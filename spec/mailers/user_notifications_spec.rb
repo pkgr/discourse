@@ -77,6 +77,13 @@ describe UserNotifications do
         expect(subject.text_part.body.to_s).to be_present
       end
 
+      it "includes email_prefix in email subject instead of site title" do
+        SiteSetting.email_prefix = "Try Discourse"
+        SiteSetting.title = "Discourse Meta"
+
+        expect(subject.subject).to match(/Try Discourse/)
+        expect(subject.subject).not_to match(/Discourse Meta/)
+      end
     end
   end
 
@@ -114,7 +121,7 @@ describe UserNotifications do
       response.user.mailing_list_mode = true
       mail = UserNotifications.user_replied(response.user, post: response, notification: notification)
 
-      if rails_master?
+      if Rails.version >= "4.2.0"
         expect(mail.message.class).to eq(ActionMailer::Base::NullMail)
       else
         expect(mail.class).to eq(ActionMailer::Base::NullMail)
@@ -123,7 +130,7 @@ describe UserNotifications do
       response.user.mailing_list_mode = nil
       mail = UserNotifications.user_replied(response.user, post: response, notification: notification)
 
-      if rails_master?
+      if Rails.version >= "4.2.0"
         expect(mail.message.class).not_to eq(ActionMailer::Base::NullMail)
       else
         expect(mail.class).not_to eq(ActionMailer::Base::NullMail)
@@ -196,7 +203,7 @@ describe UserNotifications do
     UserNotifications.any_instance.expects(:build_email).with(user.email, condition)
     mailer = UserNotifications.send(mail_type, user, notification: notification, post: notification.post)
 
-    if rails_master?
+    if Rails.version >= "4.2.0"
       # Starting from Rails 4.2, calling MyMailer.some_method no longer result
       # in an immediate call to MyMailer#some_method. Instead, a "lazy proxy" is
       # returned (this is changed to support #deliver_later). As a quick hack to
@@ -322,6 +329,13 @@ describe UserNotifications do
   describe "user invited to a private message" do
     include_examples "notification email building" do
       let(:notification_type) { :invited_to_private_message }
+      include_examples "no reply by email"
+    end
+  end
+
+  describe "user invited to a topic" do
+    include_examples "notification email building" do
+      let(:notification_type) { :invited_to_topic }
       include_examples "no reply by email"
     end
   end

@@ -1,13 +1,13 @@
 class LetterAvatar
 
   # BUMP UP if avatar algorithm changes
-  VERSION = 2
+  VERSION = 5
 
-  # Largest avatar generated, one day when pixel ratio hit 3
-  # we will need to change this
-  FULLSIZE = 240
+  # CHANGE these values to support more pixel ratios
+  FULLSIZE  = 120 * 3
+  POINTSIZE = 280
 
-  class<<self
+  class << self
 
     class Identity
       attr_accessor :color, :letter
@@ -15,40 +15,45 @@ class LetterAvatar
       def self.from_username(username)
         identity = new
         identity.color = LetterAvatar::COLORS[
-            Digest::MD5.hexdigest(username)[0...15].to_i(16) % LetterAvatar::COLORS.length
+          Digest::MD5.hexdigest(username)[0...15].to_i(16) % LetterAvatar::COLORS.length
         ]
         identity.letter = username[0].upcase
-
         identity
       end
     end
 
+    def version
+      "#{VERSION}_#{image_magick_version}"
+    end
+
     def cache_path
-      "public/uploads/letter_avatars/#{VERSION}"
+      "tmp/letter_avatars/#{version}"
     end
 
     def generate(username, size, opts = nil)
-      identity = Identity.from_username(username)
+      DistributedMutex.synchronize("letter_avatar_#{version}_#{username}_#{size}") do
+        identity = Identity.from_username(username)
 
-      cache = true
-      cache = false if opts && opts[:cache] == false
+        cache = true
+        cache = false if opts && opts[:cache] == false
 
-      size = FULLSIZE if size > FULLSIZE
-      filename = cached_path(identity, size)
+        size = FULLSIZE if size > FULLSIZE
+        filename = cached_path(identity, size)
 
-      return filename if cache && File.exists?(filename)
+        return filename if cache && File.exists?(filename)
 
-      fullsize = fullsize_path(identity)
-      generate_fullsize(identity) if !cache || !File.exists?(fullsize)
+        fullsize = fullsize_path(identity)
+        generate_fullsize(identity) if !cache || !File.exists?(fullsize)
 
-      OptimizedImage.resize(fullsize, filename, size, size)
-      filename
+        OptimizedImage.resize(fullsize, filename, size, size)
+
+        filename
+      end
     end
 
     def cached_path(identity, size)
       dir = "#{cache_path}/#{identity.letter}/#{identity.color.join("_")}"
       FileUtils.mkdir_p(dir)
-
       "#{dir}/#{size}.png"
     end
 
@@ -61,37 +66,50 @@ class LetterAvatar
       letter = identity.letter
 
       filename = fullsize_path(identity)
-      stroke = darken(color, 0.8)
 
       instructions = %W{
-        -size 240x240
+        -size #{FULLSIZE}x#{FULLSIZE}
         xc:#{to_rgb(color)}
-        -pointsize 200
-        -fill white
-        -gravity Center
+        -pointsize #{POINTSIZE}
+        -fill '#FFFFFFCC'
         -font 'Helvetica'
-        -stroke #{to_rgb(stroke)}
-        -strokewidth 2
-        -annotate -5+25 '#{letter}'
+        -gravity Center
+        -annotate -0+26 '#{letter}'
+        -depth 8
         '#{filename}'
       }
 
       `convert #{instructions.join(" ")}`
 
-      ImageOptim.new.optimize_image(filename) rescue nil
+      ImageOptim.new.optimize_image!(filename) rescue nil
 
       filename
-    end
-
-    def darken(color,pct)
-      color.map do |n|
-        (n.to_f * pct).to_i
-      end
     end
 
     def to_rgb(color)
       r,g,b = color
       "'rgb(#{r},#{g},#{b})'"
+    end
+
+    def image_magick_version
+      @image_magick_version ||=
+        begin
+          Thread.new do
+            sleep 2
+            cleanup_old
+          end
+          Digest::MD5.hexdigest(`convert --version` << `convert -list font`)
+        end
+    end
+
+    def cleanup_old
+      skip = File.basename(cache_path)
+      parent_path = File.dirname(cache_path)
+      Dir.entries(parent_path).each do |path|
+        unless ['.','..'].include?(path) || path == skip
+          FileUtils.rm_rf(parent_path + "/" + path)
+        end
+      end
     end
   end
 
