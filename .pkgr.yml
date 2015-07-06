@@ -8,6 +8,9 @@ targets:
   debian-7:
     dependencies:
       - imagemagick
-before_precompile: ./packaging/debian/setup.sh
+services:
+  - postgres
+  - redis
+before_precompile: ./packaging/setup.sh
 after:
   - rm lib/tasks/pkgr.rake
