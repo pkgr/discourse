@@ -1,7 +1,9 @@
 function applicable() {
+  // IE has no DOMNodeInserted so can not get this hack despite saying it is like iPhone
   // This will apply hack on all iDevices
   return navigator.userAgent.match(/(iPad|iPhone|iPod)/g) &&
-         navigator.userAgent.match(/Safari/g);
+         navigator.userAgent.match(/Safari/g) &&
+         !navigator.userAgent.match(/Trident/g);
 }
 
 // per http://stackoverflow.com/questions/29001977/safari-in-ios8-is-scrolling-screen-when-fixed-elements-get-focus/29064810
@@ -35,6 +37,8 @@ function positioningWorkaround($fixedElement) {
     if (evt) {
       evt.target.removeEventListener('blur', blurred);
     }
+
+    $('body').removeData('disable-cloaked-view');
   };
 
   var blurred = _.debounce(blurredNow, 250);
@@ -58,6 +62,8 @@ function positioningWorkaround($fixedElement) {
     originalScrollTop = $(window).scrollTop();
 
     // take care of body
+
+    $('body').data('disable-cloaked-view',true);
     $('#main-outlet').hide();
     $('header').hide();
 

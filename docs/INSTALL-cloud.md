@@ -2,43 +2,40 @@
 
 # Create New Cloud Server
 
-[Sign up for Digital Ocean][do], update billing info, then create your new cloud server (Droplet).
+[Sign up for Digital Ocean][do], update billing info, then create your new cloud server.
 
 - Enter your domain `discourse.example.com` as the name.
 
-- The default of **1 GB** RAM works fine for small Discourse communities. We do recommend 2 GB RAM for medium communities.
+- The default of **1 GB** RAM works fine for small Discourse communities. We recommend 2 GB RAM for larger communities.
 
 - The default of **Ubuntu 14.04 LTS x64** works fine. At minimum, a 64-bit Linux OS with a kernel version of 3.10+ is required.
 
 - The default of **New York** is a good choice for most US and European audiences. Or select a region that is geographically closer to your audience.
 
-Create your new Droplet. You will receive a mail from Digital Ocean with the root password to your Droplet. (However, if you know [how to use SSH keys](https://www.google.com/search?q=digitalocean+ssh+keys), you may not need a password to log in.)
+Create your new Droplet. You will receive an email with the root password to your Droplet. (However, if you know [how to use SSH keys](https://www.google.com/search?q=digitalocean+ssh+keys), you may not need a password to log in.)
 
 # Access Your Cloud Server
 
-Connect to your Droplet via SSH, or use [Putty][put] on Windows:
+Connect to your server via SSH, or use [Putty][put] on Windows:
 
     ssh root@192.168.1.1
 
-Replace `192.168.1.1` with the IP address of your Droplet.
+Replace `192.168.1.1` with the IP address of your server.
 
-<img src="http://www.discourse.org/images/install/ssh-login-start-1-3-beta.png?v=1">
+You will be asked for permission to connect, type `yes`, then enter the root password from the email Digital Ocean sent you when the server was set up. You may be prompted to change the root password, too.
 
-You will be asked for permission to connect, type `yes`, then enter the root password from the email Digital Ocean sent you when the Droplet was set up. You may be prompted to change the root password, too.
-
-<img src="http://www.discourse.org/images/install/ssh-login-1-3-beta.png?v=1">
+<img src="https://www.discourse.org/images/install/14/console-ssh.png?v=1" width="600px">
 
 # Set up Swap (if needed)
 
 - If you're using the minimum 1 GB install, you *must* [set up a swap file](https://meta.discourse.org/t/create-a-swapfile-for-your-linux-server/13880).
-
 - If you're using 2 GB+ memory, you can probably get by without a swap file.
 
 # Install Docker / Git
 
     wget -qO- https://get.docker.com/ | sh
 
-<img src="http://www.discourse.org/images/install/install-git-1-3-beta.png?v=1">
+This command installs the latest versions of Docker and Git on your server. Alternately, you can manually install the respective [Docker package for your OS](https://docs.docker.com/installation/).
 
 # Install Discourse
 
@@ -49,15 +46,13 @@ Create a `/var/discourse` folder, clone the [Official Discourse Docker Image][dd
     cd /var/discourse
     cp samples/standalone.yml containers/app.yml
 
-<img src="http://www.discourse.org/images/install/mkdir-var-docker-1-3-beta.png?v=1">
-
 # Edit Discourse Configuration
 
-Edit the Discourse configuration at `app.yml`:
+Edit the Discourse config file `app.yml`:
 
     nano containers/app.yml
 
-We recommend Nano because it works like a typical GUI text editor, just use your arrow keys.
+We recommend Nano because it's simple; just use your arrow keys to edit.
 
 - Set `DISCOURSE_DEVELOPER_EMAILS` to your email address.
 
@@ -67,7 +62,7 @@ We recommend Nano because it works like a typical GUI text editor, just use your
 
 - If you are using a 1 GB instance, set `UNICORN_WORKERS` to 2 and `db_shared_buffers` to 128MB so you have more memory room.
 
-<img src="http://www.discourse.org/images/install/nano-screenshot-1-3-beta.png?v=1">
+<img src="https://www.discourse.org/images/install/14/console-nano-app-yml.png?v=1" width="600px">
 
 After completing your edits, press <kbd>Ctrl</kbd><kbd>O</kbd> then <kbd>Enter</kbd> to save and <kbd>Ctrl</kbd><kbd>X</kbd> to exit.
 
@@ -77,7 +72,7 @@ After completing your edits, press <kbd>Ctrl</kbd><kbd>O</kbd> then <kbd>Enter</
 
 - Already have a mail server? Great. Use your existing mail server credentials.
 
-- No existing mail server, or you don't know what it is? No problem, create a free account on [SparkPost][sp] (10k emails/month) [Mailgun][gun] (10k emails/month), [Mailjet][jet] (200 emails/day) or [**Mandrill**][man], and use the credentials provided in the dashboard.
+- No existing mail server? Create a free account on [SparkPost][sp] (10k emails/month) [Mailgun][gun] (10k emails/month), [Mailjet][jet] (200 emails/day) or [**Mandrill**][man], and use the credentials provided in the dashboard.
 
 - For proper email deliverability, you must set the [SPF and DKIM records](http://help.mandrill.com/entries/21751322-What-are-SPF-and-DKIM-and-do-I-need-to-set-them-up-) in your DNS. In Mandrill, that's under Sending Domains, View DKIM/SPF setup instructions.
 
@@ -87,41 +82,38 @@ Save the `app.yml` file, and begin bootstrapping Discourse:
 
     ./launcher bootstrap app
 
-This command takes about 8 minutes. It is automagically configuring your Discourse environment.
-
-After that completes, start Discourse:
+This command takes about **8 minutes** to automagically configure your Discourse. After that completes, start Discourse:
 
     ./launcher start app
 
-<img src="http://www.discourse.org/images/install/launcher-start-app-1-3-beta.png?v=1">
+<img src="https://www.discourse.org/images/install/14/console-launcher-start.png?v=1" width="600px">
 
-Congratulations! You now have your own instance of Discourse!
+Congratulations! You just built your very own Discourse!
 
-It should be accessible via the domain name `discourse.example.com` you entered earlier, provided you configured DNS. If not, you can also visit the server IP directly, e.g. `http://192.168.1.1`.
+Your Discourse should be accessible in your web browser via the domain name `discourse.example.com` you entered earlier, provided you configured DNS. If not, you can visit the server IP directly, e.g. `http://192.168.1.1`.
 
-<img src="http://www.discourse.org/images/install/congratulations-on-installing-discourse-1-3-beta.png?v=1">
+<img src="https://www.discourse.org/images/install/14/browser-discourse-installed.png">
 
 # Register New Account and Become Admin
 
-There is a reminder at the top about `DISCOURSE_DEVELOPER_EMAILS`; register a new account via one of those email addresses, and your account will automatically be made an Admin.
+There is a reminder at the top about the `DISCOURSE_DEVELOPER_EMAILS` you entered previously in `app.yml`; register a new account using one of those email addresses, and your account will automatically be made an Admin.
 
 (If you *don't* get any email from your install, and are unable to register a new admin account, please see our [Email Troubleshooting checklist](https://meta.discourse.org/t/troubleshooting-email-on-a-new-discourse-install/16326).)
 
-<img src="http://www.discourse.org/images/install/discourse-installed-1-3-beta.png?v=1">
+<img src="https://www.discourse.org/images/install/14/browser-logged-in-first-admin.png?v=1">
 
-You should see Staff topics and the [Admin Quick Start Guide](https://github.com/discourse/discourse/blob/master/docs/ADMIN-QUICK-START-GUIDE.md). It contains the next steps for further configuring and customizing your Discourse install.
+You should see Staff topics and **READ ME FIRST: Admin Quick Start Guide**. This guide contains the next steps for further configuring and customizing your Discourse install as an administrator. Read it closely!
 
 (If you are still unable to register a new admin account via email, see [Create Admin Account from Console](https://meta.discourse.org/t/create-admin-account-from-console/17274), but please note that *you will have a broken site* unless you get email working on your instance.)
-
 
 # Post-Install Maintenance
 
 We strongly suggest you:
 
-- turn on automatic security updates via the `dpkg-reconfigure -plow unattended-upgrades` command
-- enable stronger passwords via the `apt-get install libpam-cracklib` package
+- Turn on automatic security updates for your OS. In Ubuntu use the `dpkg-reconfigure -plow unattended-upgrades` command.
+- If you are using a password and not a SSH key, be sure to enforce a strong root password. In Ubuntu use the `apt-get install libpam-cracklib` package.
 
-To **upgrade Discourse to the latest version**, visit `/admin/upgrade` and follow the instructions.
+You will get email reminders as new versions of Discourse are released. Please stay current to get the latest features and security fixes. To **upgrade Discourse to the latest version**, visit `/admin/upgrade` in your browser and click the Upgrade button.
 
 The `launcher` command in the `/var/discourse` folder can be used for various kinds of maintenance:
 
@@ -174,7 +166,7 @@ Do you want...
 
 - To embed Discourse [in your WordPress install](https://github.com/discourse/wp-discourse), or [on your static HTML site](https://meta.discourse.org/t/embedding-discourse-comments-via-javascript/31963)?
 
-If anything needs to be improved in this guide, feel free to ask on [meta.discourse.org][meta], or even better, submit a pull request.
+Help us improve this guide! Feel free to ask about it on [meta.discourse.org][meta], or even better, submit a pull request.
 
    [dd]: https://github.com/discourse/discourse_docker
   [man]: https://mandrillapp.com
