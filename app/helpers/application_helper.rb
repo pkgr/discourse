@@ -74,6 +74,11 @@ module ApplicationHelper
     end
   end
 
+  def format_topic_title(title)
+    PrettyText.unescape_emoji(title)
+    strip_tags(title)
+  end
+
   def with_format(format, &block)
     old_formats = formats
     self.formats = [format]
