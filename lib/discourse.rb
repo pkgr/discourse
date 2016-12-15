@@ -235,7 +235,7 @@ module Discourse
   end
 
   def self.readonly_mode?
-    recently_readonly? || !!$redis.get(READONLY_MODE_KEY)
+    recently_readonly? || !!$redis.get(READONLY_MODE_KEY) || !!$redis.get(USER_READONLY_MODE_KEY)
   end
 
   def self.request_refresh!
@@ -328,6 +328,9 @@ module Discourse
 
     # in case v8 was initialized we want to make sure it is nil
     PrettyText.reset_context
+
+    Tilt::ES6ModuleTranspilerTemplate.reset_context if defined? Tilt::ES6ModuleTranspilerTemplate
+    JsLocaleHelper.reset_context if defined? JsLocaleHelper
     nil
   end
 
