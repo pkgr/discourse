@@ -543,9 +543,21 @@ class UsersController < ApplicationController
 
     raise Discourse::NotFound unless @user
 
-    @email_token = @user.email_tokens.unconfirmed.active.first
-    enqueue_activation_email if @user
-    render nothing: true
+    if (current_user && !current_user.staff?) ||
+        @user.id != session[SessionController::ACTIVATE_USER_KEY]
+
+      raise Discourse::InvalidAccess
+    end
+
+    session.delete(SessionController::ACTIVATE_USER_KEY)
+
+    if @user.active
+      render_json_error(I18n.t('activation.activated'), status: 409)
+    else @user
+      @email_token = @user.email_tokens.unconfirmed.active.first
+      enqueue_activation_email
+      render nothing: true
+    end
   end
 
   def enqueue_activation_email

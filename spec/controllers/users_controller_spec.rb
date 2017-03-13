@@ -1406,10 +1406,38 @@ describe UsersController do
     context 'for an existing user' do
       let(:user) { Fabricate(:user, active: false) }
 
+      context 'for an activated account' do
+        it 'fails' do
+          active_user = Fabricate(:user, active: true)
+          session[SessionController::ACTIVATE_USER_KEY] = active_user.id
+          xhr :post, :send_activation_email, username: active_user.username
+
+          expect(response.status).to eq(409)
+
+          expect(JSON.parse(response.body)['errors']).to include(I18n.t(
+            'activation.activated'
+          ))
+
+          expect(session[SessionController::ACTIVATE_USER_KEY]).to eq(nil)
+        end
+      end
+
+      describe 'when user does not have a valid session' do
+        it 'should not be valid' do
+          user = Fabricate(:user)
+          xhr :post, :send_activation_email, username: user.username
+
+          expect(response.status).to eq(403)
+        end
+      end
+
       context 'with a valid email_token' do
         it 'should send the activation email' do
+          session[SessionController::ACTIVATE_USER_KEY] = user.id
           Jobs.expects(:enqueue).with(:critical_user_email, has_entries(type: :signup))
           xhr :post, :send_activation_email, username: user.username
+
+          expect(session[SessionController::ACTIVATE_USER_KEY]).to eq(nil)
         end
       end
 
@@ -1421,13 +1449,17 @@ describe UsersController do
 
         it 'should generate a new token' do
           expect {
+            session[SessionController::ACTIVATE_USER_KEY] = user.id
             xhr :post, :send_activation_email, username: user.username
           }.to change{ user.email_tokens(true).count }.by(1)
         end
 
         it 'should send an email' do
+          session[SessionController::ACTIVATE_USER_KEY] = user.id
           Jobs.expects(:enqueue).with(:critical_user_email, has_entries(type: :signup))
           xhr :post, :send_activation_email, username: user.username
+
+          expect(session[SessionController::ACTIVATE_USER_KEY]).to eq(nil)
         end
       end
     end
