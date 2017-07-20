@@ -1,3 +1,6 @@
+env:
+  - DISCOURSE_REDIS_HOST="$REDIS_HOST"
+  - DISCOURSE_REDIS_PORT="$REDIS_PORT"
 targets:
   ubuntu-16.04:
     dependencies:

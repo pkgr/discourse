@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+echo "env"
+env
+
 # Not everyone chooses to run discourse behind Apache or Nginx.
 cat >> config/environments/production.rb <<EOF
 Discourse::Application.configure do
