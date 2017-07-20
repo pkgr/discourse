@@ -14,4 +14,4 @@ EOF
 echo 'ruby "2.4.1"' >> Gemfile
 
 # Overwrite assets:precompile task
-# mv packaging/pkgr.rake lib/tasks/
+mv packaging/pkgr.rake lib/tasks/
