@@ -10,7 +10,7 @@ targets:
       - imagemagick
 services:
   - postgres
-  - redis
+  # - redis
 before_precompile: ./packaging/setup.sh
 after:
-  - rm lib/tasks/pkgr.rake
+  - rm -f lib/tasks/pkgr.rake
